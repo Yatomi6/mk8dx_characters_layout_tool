@@ -1,0 +1,394 @@
+{
+  "AnimalBoyA": {
+    "Driver": "Driver/AnimalBoyA.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_AnimalBoyA.bars",
+    "Audio/Driver": "Audio/Driver/Driver_AnimalBoyA.bars",
+    "ui": "tc_Chara_AnimalBoyA^l.png",
+    "ui_ed": "tc_edChara_AnimalBoyA^l.png",
+    "ui_map": "tc_MapChara_AnimalBoyA^l.png"
+  },
+  "AnimalGirlA": {
+    "Driver": "Driver/AnimalGirlA.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_AnimalGirlA.bars",
+    "Audio/Driver": "Audio/Driver/Driver_AnimalGirlA.bars",
+    "ui": "tc_Chara_AnimalGirlA^l.png",
+    "ui_ed": "tc_edChara_AnimalGirlA^l.png",
+    "ui_map": "tc_MapChara_AnimalGirlA^l.png"
+  },
+  "BbDaisy": {
+    "Driver": "Driver/BbDaisy.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_BbDaisy.bars",
+    "Audio/Driver": "Audio/Driver/Driver_BbDaisy.bars",
+    "ui": "tc_Chara_BbDaisy^l.png",
+    "ui_ed": "tc_edChara_BbDaisy^l.png",
+    "ui_map": "tc_MapChara_BbDaisy^l.png"
+  },
+  "BbLuigi": {
+    "Driver": "Driver/BbLuigi.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_BbLuigi.bars",
+    "Audio/Driver": "Audio/Driver/Driver_BbLuigi.bars",
+    "ui": "tc_Chara_BbLuigi^l.png",
+    "ui_ed": "tc_edChara_BbLuigi^l.png",
+    "ui_map": "tc_MapChara_BbLuigi^l.png"
+  },
+  "BbMario": {
+    "Driver": "Driver/BbMario.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_BbMario.bars",
+    "Audio/Driver": "Audio/Driver/Driver_BbMario.bars",
+    "ui": "tc_Chara_BbMario^l.png",
+    "ui_ed": "tc_edChara_BbMario^l.png",
+    "ui_map": "tc_MapChara_BbMario^l.png"
+  },
+  "BbPeach": {
+    "Driver": "Driver/BbPeach.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_BbPeach.bars",
+    "Audio/Driver": "Audio/Driver/Driver_BbPeach.bars",
+    "ui": "tc_Chara_BbPeach^l.png",
+    "ui_ed": "tc_edChara_BbPeach^l.png",
+    "ui_map": "tc_MapChara_BbPeach^l.png"
+  },
+  "BbRosalina": {
+    "Driver": "Driver/BbRosetta.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_BbRosetta.bars",
+    "Audio/Driver": "Audio/Driver/Driver_BbRosetta.bars",
+    "ui": "tc_Chara_BbRosetta^l.png",
+    "ui_ed": "tc_edChara_BbRosetta^l.png",
+    "ui_map": "tc_MapChara_BbRosetta^l.png"
+  },
+  "CatPeach": {
+    "Driver": "Driver/CatPeach.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_CatPeach.bars",
+    "Audio/Driver": "Audio/Driver/Driver_CatPeach.bars",
+    "ui": "tc_Chara_CatPeach^l.png",
+    "ui_ed": "tc_edChara_CatPeach^l.png",
+    "ui_map": "tc_MapChara_CatPeach^l.png"
+  },
+  "DK": {
+    "Driver": "Driver/DK.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DK.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DK.bars",
+    "ui": "tc_Chara_DK^l.png",
+    "ui_ed": "tc_edChara_DK^l.png",
+    "ui_map": "tc_MapChara_DK^l.png"
+  },
+  "Daisy": {
+    "Driver": "Driver/Daisy.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Daisy.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Daisy.bars",
+    "ui": "tc_Chara_Daisy^l.png",
+    "ui_ed": "tc_edChara_Daisy^l.png",
+    "ui_map": "tc_MapChara_Daisy^l.png"
+  },
+  "DrvChr01": {
+    "Driver": "Driver/DrvChr01.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr01.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr01.bars",
+    "ui": "tc_Chara_Catherine00^l.png",
+    "ui_ed": "tc_edChara_Catherine00^l.png",
+    "ui_map": "tc_MapChara_Catherine00^l.png"
+  },
+  "DrvChr02": {
+    "Driver": "Driver/DrvChr02.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr02.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr02.bars",
+    "ui": "tc_Chara_Kameck^l.png",
+    "ui_ed": "tc_edChara_Kameck^l.png",
+    "ui_map": "tc_MapChara_Kameck^l.png"
+  },
+  "DrvChr03": {
+    "Driver": "Driver/DrvChr03.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr03.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr03.bars",
+    "ui": "tc_Chara_BossPakkun^l.png",
+    "ui_ed": "tc_edChara_BossPakkun^l.png",
+    "ui_map": "tc_MapChara_BossPakkun^l.png"
+  },
+  "DrvChr04": {
+    "Driver": "Driver/DrvChr04.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr04.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr04.bars",
+    "ui": "tc_Chara_Hanachan^l.png",
+    "ui_ed": "tc_edChara_Hanachan^l.png",
+    "ui_map": "tc_MapChara_Hanachan^l.png"
+  },
+  "DrvChr05": {
+    "Driver": "Driver/DrvChr05.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr05.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr05.bars",
+    "ui": "tc_Chara_DiddyKong^l.png",
+    "ui_ed": "tc_edChara_DiddyKong^l.png",
+    "ui_map": "tc_MapChara_DiddyKong^l.png"
+  },
+  "DrvChr06": {
+    "Driver": "Driver/DrvChr06.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr06.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr06.bars",
+    "ui": "tc_Chara_FK^l.png",
+    "ui_ed": "tc_edChara_FK^l.png",
+    "ui_map": "tc_MapChara_FK^l.png"
+  },
+  "DrvChr07": {
+    "Driver": "Driver/DrvChr07.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr07.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr07.bars",
+    "ui": "tc_Chara_Kinopeach^l.png",
+    "ui_ed": "tc_edChara_Kinopeach^l.png",
+    "ui_map": "tc_MapChara_Kinopeach^l.png"
+  },
+  "DrvChr08": {
+    "Driver": "Driver/DrvChr08.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_DrvChr08.bars",
+    "Audio/Driver": "Audio/Driver/Driver_DrvChr08.bars",
+    "ui": "tc_Chara_Pauline^l.png",
+    "ui_ed": "tc_edChara_Pauline^l.png",
+    "ui_map": "tc_MapChara_Pauline^l.png"
+  },
+  "GoldMario": {
+    "Driver": "Driver/GoldMario.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_GoldMario.bars",
+    "Audio/Driver": "Audio/Driver/Driver_GoldMario.bars",
+    "ui": "tc_Chara_GoldMario^l.png",
+    "ui_ed": "tc_edChara_GoldMario^l.png",
+    "ui_map": "tc_MapChara_GoldMario^l.png"
+  },
+  "Heyho": {
+    "Driver": "Driver/Heyho.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Heyho.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Heyho.bars",
+    "ui": "tc_Chara_Heyho00^l.png",
+    "ui_ed": "tc_edChara_Heyho00^l.png",
+    "ui_map": "tc_MapChara_Heyho00^l.png"
+  },
+  "HoneKoopa": {
+    "Driver": "Driver/HoneKoopa.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_HoneKoopa.bars",
+    "Audio/Driver": "Audio/Driver/Driver_HoneKoopa.bars",
+    "ui": "tc_Chara_HoneKoopa^l.png",
+    "ui_ed": "tc_edChara_HoneKoopa^l.png",
+    "ui_map": "tc_MapChara_HoneKoopa^l.png"
+  },
+  "Iggy": {
+    "Driver": "Driver/Iggy.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Iggy.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Iggy.bars",
+    "ui": "tc_Chara_Iggy^l.png",
+    "ui_ed": "tc_edChara_Iggy^l.png",
+    "ui_map": "tc_MapChara_Iggy^l.png"
+  },
+  "Jugem": {
+    "Driver": "Driver/Jugem.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Jugem.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Jugem.bars",
+    "ui": "tc_Chara_Jugemu^l.png",
+    "ui_ed": "tc_edChara_Jugemu^l.png",
+    "ui_map": "tc_MapChara_Jugemu^l.png"
+  },
+  "Karon": {
+    "Driver": "Driver/Karon.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Karon.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Karon.bars",
+    "ui": "tc_Chara_Karon^l.png",
+    "ui_ed": "tc_edChara_Karon^l.png",
+    "ui_map": "tc_MapChara_Karon^l.png"
+  },
+  "KingTeresa": {
+    "Driver": "Driver/KingTeresa.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_KingTeresa.bars",
+    "Audio/Driver": "Audio/Driver/Driver_KingTeresa.bars",
+    "ui": "tc_Chara_KingTeresa^l.png",
+    "ui_ed": "tc_edChara_KingTeresa^l.png",
+    "ui_map": "tc_MapChara_KingTeresa^l.png"
+  },
+  "Kinopico": {
+    "Driver": "Driver/Kinopico.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Kinopico.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Kinopico.bars",
+    "ui": "tc_Chara_Kinopico^l.png",
+    "ui_ed": "tc_edChara_Kinopico^l.png",
+    "ui_map": "tc_MapChara_Kinopico^l.png"
+  },
+  "Kinopio": {
+    "Driver": "Driver/Kinopio.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Kinopio.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Kinopio.bars",
+    "ui": "tc_Chara_Kinopio^l.png",
+    "ui_ed": "tc_edChara_Kinopio^l.png",
+    "ui_map": "tc_MapChara_Kinopio^l.png"
+  },
+  "Koopa": {
+    "Driver": "Driver/Koopa.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Koopa.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Koopa.bars",
+    "ui": "tc_Chara_Koopa^l.png",
+    "ui_ed": "tc_edChara_Koopa^l.png",
+    "ui_map": "tc_MapChara_Koopa^l.png"
+  },
+  "KoopaJr": {
+    "Driver": "Driver/KoopaJr.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_KoopaJr.bars",
+    "Audio/Driver": "Audio/Driver/Driver_KoopaJr.bars",
+    "ui": "tc_Chara_KoopaJr^l.png",
+    "ui_ed": "tc_edChara_KoopaJr^l.png",
+    "ui_map": "tc_MapChara_KoopaJr^l.png"
+  },
+  "Larry": {
+    "Driver": "Driver/Larry.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Larry.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Larry.bars",
+    "ui": "tc_Chara_Larry^l.png",
+    "ui_ed": "tc_edChara_Larry^l.png",
+    "ui_map": "tc_MapChara_Larry^l.png"
+  },
+  "Lemmy": {
+    "Driver": "Driver/Lemmy.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Lemmy.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Lemmy.bars",
+    "ui": "tc_Chara_Lemmy^l.png",
+    "ui_ed": "tc_edChara_Lemmy^l.png",
+    "ui_map": "tc_MapChara_Lemmy^l.png"
+  },
+  "Link": {
+    "Driver": "Driver/Link.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Link.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Link.bars",
+    "ui": "tc_Chara_Link^l.png",
+    "ui_ed": "tc_edChara_Link^l.png",
+    "ui_map": "tc_MapChara_Link^l.png"
+  },
+  "LinkBotw": {
+    "Driver": "Driver/LinkBotw.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_LinkBotw.bars",
+    "Audio/Driver": "Audio/Driver/Driver_LinkBotw.bars",
+    "ui": "tc_Chara_LinkBotw^l.png",
+    "ui_ed": "tc_edChara_LinkBotw^l.png",
+    "ui_map": "tc_MapChara_LinkBotw^l.png"
+  },
+  "Ludwig": {
+    "Driver": "Driver/Ludwig.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Ludwig.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Ludwig.bars",
+    "ui": "tc_Chara_Ludwig^l.png",
+    "ui_ed": "tc_edChara_Ludwig^l.png",
+    "ui_map": "tc_MapChara_Ludwig^l.png"
+  },
+  "Luigi": {
+    "Driver": "Driver/Luigi.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Luigi.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Luigi.bars",
+    "ui": "tc_Chara_Luigi^l.png",
+    "ui_ed": "tc_edChara_Luigi^l.png",
+    "ui_map": "tc_MapChara_Luigi^l.png"
+  },
+  "Mario": {
+    "Driver": "Driver/Mario.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Mario.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Mario.bars",
+    "ui": "tc_Chara_Mario^l.png",
+    "ui_ed": "tc_edChara_Mario^l.png",
+    "ui_map": "tc_MapChara_Mario^l.png"
+  },
+  "MetalMario": {
+    "Driver": "Driver/MetalMario.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_MetalMario.bars",
+    "Audio/Driver": "Audio/Driver/Driver_MetalMario.bars",
+    "ui": "tc_Chara_MetalMario^l.png",
+    "ui_ed": "tc_edChara_MetalMario^l.png",
+    "ui_map": "tc_MapChara_MetalMario^l.png"
+  },
+  "MetalPeach": {
+    "Driver": "Driver/MetalPeach.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_MetalPeach.bars",
+    "Audio/Driver": "Audio/Driver/Driver_MetalPeach.bars",
+    "ui": "tc_Chara_PGoldPeach^l.png",
+    "ui_ed": "tc_edChara_PGoldPeach^l.png",
+    "ui_map": "tc_MapChara_PGoldPeach^l.png"
+  },
+  "Morton": {
+    "Driver": "Driver/Morton.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Morton.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Morton.bars",
+    "ui": "tc_Chara_Morton^l.png",
+    "ui_ed": "tc_edChara_Morton^l.png",
+    "ui_map": "tc_MapChara_Morton^l.png"
+  },
+  "Nokonoko": {
+    "Driver": "Driver/Nokonoko.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Nokonoko.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Nokonoko.bars",
+    "ui": "tc_Chara_Nokonoko^l.png",
+    "ui_ed": "tc_edChara_Nokonoko^l.png",
+    "ui_map": "tc_MapChara_Nokonoko^l.png"
+  },
+  "Peach": {
+    "Driver": "Driver/Peach.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Peach.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Peach.bars",
+    "ui": "tc_Chara_Peach^l.png",
+    "ui_ed": "tc_edChara_Peach^l.png",
+    "ui_map": "tc_MapChara_Peach^l.png"
+  },
+  "Rosalina": {
+    "Driver": "Driver/Rosetta.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Rosetta.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Rosetta.bars",
+    "ui": "tc_Chara_Rosetta^l.png",
+    "ui_ed": "tc_edChara_Rosetta^l.png",
+    "ui_map": "tc_MapChara_Rosetta^l.png"
+  },
+  "Roy": {
+    "Driver": "Driver/Roy.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Roy.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Roy.bars",
+    "ui": "tc_Chara_Roy^l.png",
+    "ui_ed": "tc_edChara_Roy^l.png",
+    "ui_map": "tc_MapChara_Roy^l.png"
+  },
+  "Shizue": {
+    "Driver": "Driver/Shizue.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Shizue.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Shizue.bars",
+    "ui": "tc_Chara_Shizue^l.png",
+    "ui_ed": "tc_edChara_Shizue^l.png",
+    "ui_map": "tc_MapChara_Shizue^l.png"
+  },
+  "TanukiMario": {
+    "Driver": "Driver/TanukiMario.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_TanukiMario.bars",
+    "Audio/Driver": "Audio/Driver/Driver_TanukiMario.bars",
+    "ui": "tc_Chara_TanukiMario^l.png",
+    "ui_ed": "tc_edChara_TanukiMario^l.png",
+    "ui_map": "tc_MapChara_TanukiMario^l.png"
+  },
+  "Waluigi": {
+    "Driver": "Driver/Waluigi.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Waluigi.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Waluigi.bars",
+    "ui": "tc_Chara_Waluigi^l.png",
+    "ui_ed": "tc_edChara_Waluigi^l.png",
+    "ui_map": "tc_MapChara_Waluigi^l.png"
+  },
+  "Wario": {
+    "Driver": "Driver/Wario.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Wario.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Wario.bars",
+    "ui": "tc_Chara_Wario^l.png",
+    "ui_ed": "tc_edChara_Wario^l.png",
+    "ui_map": "tc_MapChara_Wario^l.png"
+  },
+  "Wendy": {
+    "Driver": "Driver/Wendy.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Wendy.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Wendy.bars",
+    "ui": "tc_Chara_Wendy^l.png",
+    "ui_ed": "tc_edChara_Wendy^l.png",
+    "ui_map": "tc_MapChara_Wendy^l.png"
+  },
+  "Yoshi": {
+    "Driver": "Driver/Yoshi.szs",
+    "Audio/DriverMenu": "Audio/DriverMenu/MenuDriver_Yoshi.bars",
+    "Audio/Driver": "Audio/Driver/Driver_Yoshi.bars",
+    "ui": "tc_Chara_Yoshi00^l.png",
+    "ui_ed": "tc_edChara_Yoshi00^l.png",
+    "ui_map": "tc_MapChara_Yoshi00^l.png"
+  }
+}
