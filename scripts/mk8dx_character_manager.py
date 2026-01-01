@@ -126,13 +126,13 @@ def _config_path(base: Path, filename: str) -> Path:
 def _load_audio_map_at(base: Path):
     path = _config_path(base, AUDIO_MAP_FILENAME)
     if not path.exists():
-        print(f"[ERREUR] audio_assets_map.json introuvable à la racine ({path})")
+        print(f"[ERROR] audio_assets_map.json not found at the root ({path})")
         return None
     try:
         with path.open("r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
-        print(f"[ERREUR] Lecture audio_assets_map.json echouee ({path}): {e}")
+        print(f"[ERROR] Failed to read audio_assets_map.json at {path}: {e}")
         return None
 
 
@@ -153,7 +153,7 @@ def _load_bfwav_groups_at(base: Path):
 
 
 def _find_map_entry(audio_map, bars_path: str):
-    """Retourne la ligne de config correspondant au fichier .bars choisi."""
+    """Return the config entry matching the selected .bars file."""
     name = Path(bars_path).name
     for section, entries in audio_map.items():
         if name in entries:
@@ -176,7 +176,7 @@ def _asset_to_bytes(asset) -> bytes:
 
 
 def _write_header_updates(dest_bytes: bytearray, bars_dest: Bars):
-    """Reecrit la taille et les asset_offsets dans l'en-tête sans toucher aux metas."""
+    """Rewrite size and asset_offsets in the header without touching metas."""
     endian = '>' if bars_dest.bom == '>' else '<'
     meta_count = bars_dest.meta_count
 
@@ -272,7 +272,7 @@ def _process_bars_pair(source_path: str, dest_path: str, audio_map, bfwav_groups
 
     if not src_info or not dest_info:
         missing = source_path if not src_info else dest_path
-        print(f"[ERREUR] Impossible de trouver {Path(missing).name} dans audio_assets_map.json")
+        print(f"[ERROR] Could not find {Path(missing).name} in audio_assets_map.json")
         return None
 
     bars_cache = bars_cache if bars_cache is not None else {}
@@ -281,18 +281,18 @@ def _process_bars_pair(source_path: str, dest_path: str, audio_map, bfwav_groups
         # Garder au plus une source .bars en memoire pour eviter un cache gigantesque
         if bars_cache:
             bars_cache.clear()
-        print(f"Chargement source : {source_path}")
+        print(f"Loading source: {source_path}")
         try:
             bars_source = Bars(source_path)
             bars_cache[source_path] = bars_source
         except Exception as e:
-            print(f"[ERREUR] Lecture source echouee ({source_path}): {e}")
+            print(f"[ERROR] Failed to read source ({source_path}): {e}")
             return None
 
     try:
         bars_dest = Bars(dest_path)
     except Exception as e:
-        print(f"[ERREUR] Lecture destination echouee ({dest_path}): {e}")
+        print(f"[ERROR] Failed to read destination ({dest_path}): {e}")
         return None
     dest_bytes = bytearray(Path(dest_path).read_bytes())
 
@@ -301,9 +301,9 @@ def _process_bars_pair(source_path: str, dest_path: str, audio_map, bfwav_groups
         bars_source, bars_dest, src_info, dest_info, bfwav_groups, dest_bytes
     )
     _write_header_updates(dest_bytes, bars_dest)
-    print(f"Remplacements effectues : {replaced}")
+    print(f"Replacements done: {replaced}")
     if ignored:
-        print(f"Ignores (absents dans la destination après remplacement de prefixe) : {len(ignored)}")
+        print(f"Ignored (missing in destination after prefix swap): {len(ignored)}")
 
     Path(dest_path).write_bytes(dest_bytes)
     return replaced, ignored
@@ -392,14 +392,14 @@ class MK8DXEditor(tk.Tk):
         toolbar = ttk.Frame(self, padding=6)
         toolbar.pack(fill="x")
 
-        ttk.Button(toolbar, text="Charger personnages", command=self.load_characters).pack(side="left")
-        ttk.Button(toolbar, text="Vider grille", command=self.clear_grid).pack(side="left", padx=6)
-        ttk.Button(toolbar, text="Randomiser grille", command=self.randomize_grid).pack(side="left", padx=6)
-        ttk.Button(toolbar, text="Importer preset", command=self.import_preset).pack(side="left", padx=18)
-        ttk.Button(toolbar, text="Exporter preset", command=self.export_preset).pack(side="left")
-        ttk.Button(toolbar, text="Copier fichiers", command=self.copy_files).pack(side="left", padx=12)
+        ttk.Button(toolbar, text="Load characters", command=self.load_characters).pack(side="left")
+        ttk.Button(toolbar, text="Clear grid", command=self.clear_grid).pack(side="left", padx=6)
+        ttk.Button(toolbar, text="Randomize grid", command=self.randomize_grid).pack(side="left", padx=6)
+        ttk.Button(toolbar, text="Import preset", command=self.import_preset).pack(side="left", padx=18)
+        ttk.Button(toolbar, text="Export preset", command=self.export_preset).pack(side="left")
+        ttk.Button(toolbar, text="Copy files", command=self.copy_files).pack(side="left", padx=12)
 
-        self.status = tk.StringVar(value="Selectionne mods_characters_mk8dx pour charger les vignettes.")
+        self.status = tk.StringVar(value="Select mods_characters_mk8dx to load thumbnails.")
         ttk.Label(toolbar, textvariable=self.status).pack(side="left", padx=18)
 
         main = ttk.Frame(self, padding=6)
@@ -409,7 +409,7 @@ class MK8DXEditor(tk.Tk):
         lib_frame = ttk.Frame(main)
         lib_frame.pack(side="left", fill="y")
 
-        ttk.Label(lib_frame, text="Personnages").pack(anchor="w")
+        ttk.Label(lib_frame, text="Characters").pack(anchor="w")
 
         self.lib = ScrollableFrame(lib_frame, width=320, height=560)
         self.lib.pack(fill="y", pady=(6, 0))
@@ -418,7 +418,7 @@ class MK8DXEditor(tk.Tk):
         grid_frame = ttk.Frame(main, padding=(12, 0))
         grid_frame.pack(side="left")
 
-        ttk.Label(grid_frame, text="Grille 8x6").pack(anchor="w")
+        ttk.Label(grid_frame, text="8x6 grid").pack(anchor="w")
 
         self.grid_container = ttk.Frame(grid_frame)
         self.grid_container.pack(pady=(6, 0))
@@ -511,7 +511,7 @@ class MK8DXEditor(tk.Tk):
         if guessed:
             self.mod_root = guessed
             return True
-        path = filedialog.askdirectory(title="Dossier mods_characters_mk8dx")
+        path = filedialog.askdirectory(title="mods_characters_mk8dx folder")
         if not path:
             return False
         self.mod_root = path
@@ -553,7 +553,7 @@ class MK8DXEditor(tk.Tk):
         for path in sorted(subdirs, key=lambda p: p.name.lower()):
             name = path.name
             if not folder_structure_ok(path):
-                print(f"WARNING: Dossier ignor? (structure manquante) : {name}")
+                print(f"WARNING: Folder skipped (missing structure): {name}")
                 continue
 
             cmn_dir = path / "UI" / "cmn"
@@ -573,7 +573,7 @@ class MK8DXEditor(tk.Tk):
                 or has_expected(expected_audio_driver, path / "Audio" / "Driver")
                 or has_expected(expected_ui, cmn_dir)
             ):
-                print(f"WARNING: Dossier ignor? (aucun fichier attendu du mapping) : {name}")
+                print(f"WARNING: Folder skipped (no expected mapping files): {name}")
                 continue
 
             tkimg = None
@@ -608,9 +608,9 @@ class MK8DXEditor(tk.Tk):
         # start with empty placement; user associe manuellement
         self.clear_grid()
 
-        msg = f"{len(self.characters)} icones chargees depuis {chars_root}"
+        msg = f"{len(self.characters)} icons loaded from {chars_root}"
         if missing_icons:
-            msg += f" (icones absentes/corrompues pour: {', '.join(sorted(set(missing_icons))[:6])}"
+            msg += f" (missing/corrupted icons for: {', '.join(sorted(set(missing_icons))[:6])}"
             if len(missing_icons) > 6:
                 msg += "..."
             msg += ")"
@@ -618,7 +618,7 @@ class MK8DXEditor(tk.Tk):
 
         dup_report = self._dup_process_base_folder(Path(chars_root))
         print(dup_report)
-        self.status.set(f"{msg} | Duplication dossiers: ok")
+        self.status.set(f"{msg} | Folder duplication check: ok")
 
     def _apply_fixed_layout(self):
         def pick_default(name_hint=None):
@@ -1115,7 +1115,7 @@ class MK8DXEditor(tk.Tk):
 
     def randomize_grid(self):
         if not self.characters:
-            messagebox.showerror("Erreur", "Charge d'abord des personnages.")
+            messagebox.showerror("Error", "Load characters first.")
             return
 
         used_paths = set()
@@ -1300,17 +1300,17 @@ class MK8DXEditor(tk.Tk):
                         src = action.get("src", "")
                         dst = action.get("dst", "")
                         f.write(f"[{kind}] {label} | src={src} | dst={dst}\n")
-                print(f"[INFO] Liste complete des fichiers manquants ecrite dans {log_path}")
+                print(f"[INFO] Full list of missing files written to {log_path}")
             except Exception as e:
                 log_path = None
-                print(f"[WARN] Impossible d'ecrire le journal des fichiers manquants: {e}")
+                print(f"[WARN] Could not write missing files log: {e}")
 
             msg = (
-                f"{total} fichier(s) manquants detectes. La liste est trop volumineuse pour une selection detaillee.\n\n"
-                "Copier/patcher tous les fichiers ?"
+                f"{total} missing file(s) detected. The list is too large for a detailed selection.\n\n"
+                "Copy/patch all files? (can take up to 5 hours for all .bars files, otherwise a few seconds)"
             )
             if log_path:
-                msg += f"\n\nListe sauvegardee dans :\n{log_path}"
+                msg += f"\n\nList saved in:\n{log_path}"
             if messagebox.askyesno(title, msg, parent=self, icon="warning"):
                 return actions
             return []
@@ -1357,8 +1357,8 @@ class MK8DXEditor(tk.Tk):
             for var, _ in vars_checked:
                 var.set(val)
 
-        ttk.Button(btn_frame, text="Tout cocher", command=lambda: select_all(True)).pack(side="left", padx=(0, 6))
-        ttk.Button(btn_frame, text="Tout d?cocher", command=lambda: select_all(False)).pack(side="left", padx=(0, 18))
+        ttk.Button(btn_frame, text="Check all", command=lambda: select_all(True)).pack(side="left", padx=(0, 6))
+        ttk.Button(btn_frame, text="Uncheck all", command=lambda: select_all(False)).pack(side="left", padx=(0, 18))
 
         result = {"selected": None}
 
@@ -1371,8 +1371,8 @@ class MK8DXEditor(tk.Tk):
             result["selected"] = []
             win.destroy()
 
-        ttk.Button(btn_frame, text="Copier la s?lection", command=on_yes).pack(side="right", padx=(6, 0))
-        ttk.Button(btn_frame, text="Annuler", command=on_no).pack(side="right")
+        ttk.Button(btn_frame, text="Copy selection", command=on_yes).pack(side="right", padx=(6, 0))
+        ttk.Button(btn_frame, text="Cancel", command=on_no).pack(side="right")
 
         win.protocol("WM_DELETE_WINDOW", on_no)
         self.wait_window(win)
@@ -1380,7 +1380,7 @@ class MK8DXEditor(tk.Tk):
 
     def _dup_process_single(self, child_dirs: list[Path], relative: str, expected_files: set[str], lines: list[str], missing_tasks: list):
         if not expected_files:
-            lines.append(f"[{relative}] aucun fichier attendu (mapping vide).")
+            lines.append(f"[{relative}] no expected files (empty mapping).")
             return
 
         missing_entries = []
@@ -1388,7 +1388,7 @@ class MK8DXEditor(tk.Tk):
         for child in child_dirs:
             folder = child / relative
             if not folder.is_dir():
-                lines.append(f"[{relative}] {child.name}: sous-dossier manquant, ignore")
+                lines.append(f"[{relative}] {child.name}: missing subfolder, skipped")
                 continue
             files = self._dup_list_files(folder)
             missing = expected_files.difference(files)
@@ -1398,20 +1398,20 @@ class MK8DXEditor(tk.Tk):
             missing_entries.append((child, folder, missing, template_name))
 
         if not missing_entries:
-            lines.append(f"[{relative}] aucun fichier manquant.")
+            lines.append(f"[{relative}] no missing files.")
             return
 
         total_missing = sum(len(entry[2]) for entry in missing_entries)
         lines.append(
-            f"[{relative}] {len(missing_entries)} dossier(s) incomplet(s), {total_missing} fichier(s) manquant(s) d?tect?s."
+            f"[{relative}] {len(missing_entries)} incomplete folder(s), {total_missing} missing file(s) detected."
         )
-        # Ajoute aux t├óches globales; la confirmation sera unique plus tard.
+        # Add to global tasks; confirmation happens once later.
         missing_tasks.append(("copy", relative, missing_entries))
 
     def _collect_audio_actions(self, child_dirs: list[Path], relative: str, expected_files: set[str], lines: list[str]) -> list[dict]:
         actions: list[dict] = []
         if not expected_files:
-            lines.append(f"[{relative}] aucun fichier attendu (mapping vide).")
+            lines.append(f"[{relative}] no expected files (empty mapping).")
             return actions
 
         missing_entries = []
@@ -1419,7 +1419,7 @@ class MK8DXEditor(tk.Tk):
         for child in child_dirs:
             folder = child / relative
             if not folder.is_dir():
-                lines.append(f"[{relative}] {child.name}: sous-dossier manquant, ignore")
+                lines.append(f"[{relative}] {child.name}: missing subfolder, skipped")
                 continue
             files = self._dup_list_files(folder)
             missing = expected_files.difference(files)
@@ -1430,17 +1430,17 @@ class MK8DXEditor(tk.Tk):
             missing_entries.append((child, folder, missing, src_name))
 
         if not missing_entries:
-            lines.append(f"[{relative}] aucun fichier manquant.")
+            lines.append(f"[{relative}] no missing files.")
             return actions
 
         total_missing = sum(len(entry[2]) for entry in missing_entries)
         lines.append(
-            f"[{relative}] {len(missing_entries)} dossier(s) incomplet(s), {total_missing} fichier(s) manquant(s) detectes."
+            f"[{relative}] {len(missing_entries)} incomplete folder(s), {total_missing} missing file(s) detected."
         )
 
         for child, folder, missing, src_name in missing_entries:
             if not src_name:
-                lines.append(f"[{relative}] {child.name}: aucun .bars source, rien patche.")
+                lines.append(f"[{relative}] {child.name}: no source .bars, nothing patched.")
                 continue
             src_path = folder / src_name
             for name in sorted(missing):
@@ -1452,11 +1452,11 @@ class MK8DXEditor(tk.Tk):
 
     def _dup_process_base_folder(self, base_folder: Path) -> str:
         if not base_folder.exists():
-            return f"Chemin introuvable: {base_folder}"
+            return f"Path not found: {base_folder}"
         child_dirs = sorted([p for p in base_folder.iterdir() if p.is_dir()], key=lambda p: p.name.lower())
         if not child_dirs:
-            return "Aucun sous-dossier trouve."
-        lines: list[str] = [f"Dossier parent: {base_folder}"]
+            return "No subfolders found."
+        lines: list[str] = [f"Parent folder: {base_folder}"]
         expected_by_dir = self._expected_files_by_dir()
         missing_tasks: list = []
         actions: list[dict] = []
@@ -1479,7 +1479,7 @@ class MK8DXEditor(tk.Tk):
                 continue
             for child, folder, missing, template_name in entries:
                 if not template_name:
-                    lines.append(f"[{relative}] {child.name}: aucun fichier source, rien copi?.")
+                    lines.append(f"[{relative}] {child.name}: no source file, nothing copied.")
                     continue
                 template_path = folder / template_name
                 for name in sorted(missing):
@@ -1490,11 +1490,11 @@ class MK8DXEditor(tk.Tk):
         if not actions:
             return "\n".join(lines).rstrip()
 
-        summary = f"{len(actions)} fichier(s) manquant(s) detecte(s). Selectionne ceux à copier."
-        selected_actions = self._confirm_missing_copy("Completer les fichiers manquants", summary, actions)
+        summary = f"{len(actions)} missing file(s) detected. Select which ones to copy."
+        selected_actions = self._confirm_missing_copy("Complete missing files", summary, actions)
 
         if not selected_actions:
-            lines.append("Copie annulee (aucune selection).")
+            lines.append("Copy canceled (no selection).")
             return "\n".join(lines).rstrip()
 
         # Executer les copies selectionnees
@@ -1511,11 +1511,11 @@ class MK8DXEditor(tk.Tk):
                 if audio_map is None:
                     audio_map = _load_audio_map_at(Path(self.mod_root))
                     if audio_map is None:
-                        lines.append("[Audio] audio_assets_map.json introuvable, patch annule.")
+                        lines.append("[Audio] audio_assets_map.json not found, patch canceled.")
                         continue
                 if bfwav_groups is None:
                     bfwav_groups = _load_bfwav_groups_at(Path(self.mod_root))
-                print(f"\n--- Traitement #{patched_count + 1} : {dst} ---")
+                print(f"\n--- Processing #{patched_count + 1}: {dst} ---")
                 res = self._execute_bars_action(action, audio_map, bfwav_groups, bars_cache)
                 if res:
                     patched_count += 1
@@ -1526,13 +1526,13 @@ class MK8DXEditor(tk.Tk):
 
         parts = []
         if copied_count:
-            parts.append(f"{copied_count} fichier(s) copies")
+            parts.append(f"{copied_count} file(s) copied")
         if patched_count:
-            parts.append(f"{patched_count} fichier(s) .bars patches")
+            parts.append(f"{patched_count} .bars file(s) patched")
         if not parts:
-            lines.append("Aucune action executee.")
+            lines.append("No action executed.")
         else:
-            lines.append("Copie terminee: " + " | ".join(parts) + ".")
+            lines.append("Copy finished: " + " | ".join(parts) + ".")
         return "\n".join(lines).rstrip()
 
     def _execute_bars_action(self, action: dict, audio_map, bfwav_groups, bars_cache) -> bool:
@@ -1541,7 +1541,7 @@ class MK8DXEditor(tk.Tk):
         base_audio_dir = Path(self.mod_root) / BASE_AUDIO_DIRNAME
 
         if not src.is_file():
-            print(f"[ERREUR] Source .bars introuvable : {src}")
+            print(f"[ERROR] Source .bars not found: {src}")
             return False
 
         if not dst.exists():
@@ -1554,11 +1554,11 @@ class MK8DXEditor(tk.Tk):
             for candidate in candidates:
                 if candidate.is_file():
                     shutil.copy2(candidate, dst)
-                    print(f"[INFO] Fichier destination manquant, copie depuis {candidate}")
+                    print(f"[INFO] Missing destination file, copied from {candidate}")
                     found = True
                     break
             if not found:
-                print(f"[ERREUR] Fichier source introuvable pour {dst.name} dans Audio/Driver*.")
+                print(f"[ERROR] Source file not found for {dst.name} in Audio/Driver*.")
                 return False
 
         res = _process_bars_pair(str(src), str(dst), audio_map, bfwav_groups, bars_cache)
@@ -1566,7 +1566,7 @@ class MK8DXEditor(tk.Tk):
             return False
         replaced, ignored = res
         if replaced == 0:
-            print(f"[WARN] Aucun remplacement effectue pour {dst.name}.")
+            print(f"[WARN] No replacement performed for {dst.name}.")
         return True
 
     def copy_files(self):
@@ -1643,15 +1643,15 @@ class MK8DXEditor(tk.Tk):
                 shutil.copy2(src, dst)
                 copied += 1
 
-        msg = f"Copi? {copied} fichier(s) vers romfs."
+        msg = f"Copied {copied} file(s) to romfs."
         if missing:
             short = ", ".join(missing[:6])
             if len(missing) > 6:
                 short += "..."
-            messagebox.showwarning("Fichiers manquants", f"{len(missing)} fichier(s) manquants: {short}")
-            msg += f" Manquants: {len(missing)}."
+            messagebox.showwarning("Missing files", f"{len(missing)} missing file(s): {short}")
+            msg += f" Missing: {len(missing)}."
         else:
-            messagebox.showinfo("Copie terminee", msg)
+            messagebox.showinfo("Copy complete", msg)
         self.status.set(msg)
 
 
@@ -1659,7 +1659,7 @@ class MK8DXEditor(tk.Tk):
 
     def export_preset(self):
         if not self.characters:
-            messagebox.showerror("Erreur", "Charge d'abord des personnages.")
+            messagebox.showerror("Error", "Load characters first.")
             return
 
         # Fill empties with unused if possible (global across grid + group slots)
@@ -1732,7 +1732,7 @@ class MK8DXEditor(tk.Tk):
         if not path:
             return
         if not self.characters:
-            messagebox.showerror("Erreur", "Charge d'abord des personnages (pour resoudre les fichiers).")
+            messagebox.showerror("Error", "Load characters first (to resolve files).")
             return
 
         with open(path, "r", encoding="utf-8") as f:
@@ -1740,7 +1740,7 @@ class MK8DXEditor(tk.Tk):
 
         grid_files = data.get("grid_files") or data.get("grid")
         if not isinstance(grid_files, list) or len(grid_files) != GRID_COUNT:
-            messagebox.showerror("Erreur", f"Preset invalide: il faut {GRID_COUNT} entr?es.")
+            messagebox.showerror("Error", f"Invalid preset: expected {GRID_COUNT} entries.")
             return
 
         mapping_file = {c["file"]: c for c in self.characters}
@@ -1795,7 +1795,7 @@ class MK8DXEditor(tk.Tk):
             self._render_group_overlay()
 
         if missing:
-            messagebox.showwarning("Import partiel", f"{missing} fichiers du preset manquent dans le dossier charg?.")
+            messagebox.showwarning("Partial import", f"{missing} preset file(s) are missing in the loaded folder.")
 
 
 # ---------------- MAIN ----------------
