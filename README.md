@@ -28,7 +28,7 @@ What it does:
 
 ### Custom skins
 1. Create `characters/<SkinName>/` with `Driver/`, `Audio/Driver`, `Audio/DriverMenu`, and `UI/cmn/` inside.
-2. Make sure Driver/<name>.szs skeleton has at least all the bones present in MK8D_Bones folder (if not, open the .szs file in switch Toolbox, go to Skeleton folder, right click -> Import and select all bones from the MK8D_Bones folder)
+2. Bones are now injected automatically: when the tool duplicates missing files or when you press **Copy files**, it loads `MK8D_Bones/` and adds every `.bfbon` into the matching model inside each `.szs`. (You no longer need to import bones manually in Switch Toolbox.)
 3. Make sure file names match `config/mapping.json`.
 4. Relaunch the tool; the icon shows up and can be placed.
 
