@@ -5,11 +5,14 @@ import random
 import shutil
 import struct
 import sys
+import io
+from contextlib import redirect_stdout, redirect_stderr
 from io import BytesIO
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
+import oead
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
@@ -112,6 +115,13 @@ IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 AUDIO_MAP_FILENAME = "audio_assets_map.json"
 BFWAV_GROUPS_FILENAME = "bfwav_groups.json"
 BASE_AUDIO_DIRNAME = "Audio"
+BFRES_DLLS = (
+    "Syroot.BinaryData.dll",
+    "Syroot.Maths.dll",
+    "Syroot.NintenTools.NSW.Bfres.dll",
+)
+
+_BFRES_BINDINGS = None
 
 def _config_path(base: Path, filename: str) -> Path:
     """Return path to a config file under config/, falling back to root."""
@@ -307,6 +317,99 @@ def _process_bars_pair(source_path: str, dest_path: str, audio_map, bfwav_groups
 
     Path(dest_path).write_bytes(dest_bytes)
     return replaced, ignored
+
+
+def _load_bfres_bindings(lib_dir: Path):
+    """Lazy-load pythonnet + Syroot BFRES DLLs."""
+    global _BFRES_BINDINGS
+    if _BFRES_BINDINGS is not None:
+        return _BFRES_BINDINGS
+    try:
+        import clr  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError("pythonnet is required to patch BFRES skeletons (pip install pythonnet)") from exc
+
+    sys.path.insert(0, str(lib_dir))
+    missing = [name for name in BFRES_DLLS if not (lib_dir / name).exists()]
+    if missing:
+        raise RuntimeError(f"Missing BFRES DLLs in {lib_dir}: {', '.join(missing)}")
+    for name in BFRES_DLLS:
+        clr.AddReference(str(lib_dir / name))
+
+    from Syroot.NintenTools.NSW.Bfres import Bone, ResFile  # type: ignore
+    from System import Array, Byte  # type: ignore
+    from System.IO import MemoryStream  # type: ignore
+
+    _BFRES_BINDINGS = (Bone, ResFile, Array, Byte, MemoryStream)
+    return _BFRES_BINDINGS
+
+
+def _inject_bfbon_into_szs(szs_path: Path, bones_dir: Path):
+    """Add all .bfbon bones from bones_dir into the model matching the szs filename."""
+    if not szs_path.is_file():
+        raise FileNotFoundError(f"SZS not found: {szs_path}")
+    if not bones_dir.is_dir():
+        raise FileNotFoundError(f"Bones folder not found: {bones_dir}")
+
+    Bone, ResFile, Array, Byte, MemoryStream = _load_bfres_bindings(SCRIPT_DIR / "lib")
+    from System import Console  # type: ignore
+    from System.IO import TextWriter  # type: ignore
+
+    bfbon_paths = {p.stem: p for p in bones_dir.glob("*.bfbon")}
+    if not bfbon_paths:
+        raise RuntimeError(f"No .bfbon files found in {bones_dir}")
+
+    data = szs_path.read_bytes()
+    if data[:4] != b"Yaz0":
+        raise RuntimeError(f"{szs_path.name} is not Yaz0-compressed")
+    data = oead.yaz0.decompress(data)
+
+    old_out = Console.Out
+    old_err = Console.Error
+    Console.SetOut(TextWriter.Null)
+    Console.SetError(TextWriter.Null)
+    try:
+        res = ResFile(MemoryStream(Array[Byte](data)))
+    finally:
+        Console.SetOut(old_out)
+        Console.SetError(old_err)
+    target_name = szs_path.stem
+    target_model = None
+    for model in res.Models:
+        if str(model.Name) == target_name:
+            target_model = model
+            break
+    if target_model is None:
+        raise RuntimeError(f"Model named '{target_name}' not found in {szs_path.name}")
+
+    skeleton = target_model.Skeleton
+    existing = {str(b.Name) for b in skeleton.Bones}
+    to_add = [name for name in bfbon_paths.keys() if name not in existing]
+    if not to_add:
+        return False
+
+    for name in to_add:
+        bone = Bone()
+        bone.Import(str(bfbon_paths[name]))
+        skeleton.Bones.Add(bone)
+        skeleton.BoneDict.Add(bone.Name)
+
+    stream = MemoryStream()
+    old_out = Console.Out
+    old_err = Console.Error
+    Console.SetOut(TextWriter.Null)
+    Console.SetError(TextWriter.Null)
+    try:
+        res.Save(stream, True)
+    finally:
+        Console.SetOut(old_out)
+        Console.SetError(old_err)
+    stream.Position = 0
+    fres_bytes = bytes(bytearray(stream.ToArray()))
+    szs_path.write_bytes(oead.yaz0.compress(fres_bytes))
+    rel_display = szs_path.as_posix()
+    print(f"Copying necessary bones in {rel_display} Model Skeleton")
+    return True
 
 
 def extract_character_name(filename: str) -> str:
@@ -1533,6 +1636,7 @@ class MK8DXEditor(tk.Tk):
         audio_map = None
         bfwav_groups = None
         bars_cache: dict[str, Bars] = {}
+        injected_sources: set[Path] = set()
         for i, action in enumerate(selected_actions, 1):
             kind = action.get("kind", "copy")
             src = action["src"]
@@ -1550,6 +1654,13 @@ class MK8DXEditor(tk.Tk):
                 if res:
                     patched_count += 1
                 continue
+            if dst.suffix.lower() == ".szs" and src not in injected_sources:
+                try:
+                    _inject_bfbon_into_szs(Path(src), Path(self.mod_root) / "MK8D_Bones")
+                    injected_sources.add(Path(src))
+                except Exception as e:
+                    lines.append(f"[ERROR] Failed to inject bones into source {src}: {e}")
+                    return "\n".join(lines).rstrip()
             os.makedirs(dst.parent, exist_ok=True)
             shutil.copy2(src, dst)
             copied_count += 1
@@ -1668,6 +1779,12 @@ class MK8DXEditor(tk.Tk):
                 if not os.path.isfile(src):
                     missing.append(f"{folder_name}/{rel}")
                     continue
+                if rel == driver_path:
+                    try:
+                        _inject_bfbon_into_szs(Path(src), Path(self.mod_root) / "MK8D_Bones")
+                    except Exception as e:
+                        messagebox.showerror("BFRES bones", f"Failed to inject bones into {rel}: {e}")
+                        return
                 dst = os.path.join(dst_root, rel)
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 shutil.copy2(src, dst)
