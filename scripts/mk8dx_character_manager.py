@@ -1394,8 +1394,31 @@ class MK8DXEditor(tk.Tk):
             missing = expected_files.difference(files)
             if not missing:
                 continue
-            template_name = files[0] if files else None
-            missing_entries.append((child, folder, missing, template_name))
+            templates = {}
+
+            def pick_ui_template(target: str):
+                # Try to keep tc_Chara / tc_edChara / tc_MapChara variants aligned.
+                if target.startswith("tc_edChara_"):
+                    prefix = "tc_edChara_"
+                elif target.startswith("tc_MapChara_"):
+                    prefix = "tc_MapChara_"
+                elif target.startswith("tc_Chara_"):
+                    prefix = "tc_Chara_"
+                else:
+                    prefix = None
+                if prefix:
+                    for name in files:
+                        if name.startswith(prefix):
+                            return name
+                return files[0] if files else None
+
+            for name in sorted(missing):
+                if relative == "UI/cmn":
+                    templates[name] = pick_ui_template(name)
+                else:
+                    templates[name] = files[0] if files else None
+
+            missing_entries.append((child, folder, missing, templates))
 
         if not missing_entries:
             lines.append(f"[{relative}] no missing files.")
@@ -1477,12 +1500,19 @@ class MK8DXEditor(tk.Tk):
         for kind, relative, entries in missing_tasks:
             if kind != "copy":
                 continue
-            for child, folder, missing, template_name in entries:
-                if not template_name:
+            for child, folder, missing, templates in entries:
+                if not templates:
                     lines.append(f"[{relative}] {child.name}: no source file, nothing copied.")
                     continue
-                template_path = folder / template_name
                 for name in sorted(missing):
+                    template_name = templates.get(name)
+                    if not template_name:
+                        lines.append(f"[{relative}] {child.name}: no template for {name}, skipped.")
+                        continue
+                    template_path = folder / template_name
+                    if not template_path.is_file():
+                        lines.append(f"[{relative}] {child.name}: template not found ({template_name}), skipped.")
+                        continue
                     dest = folder / name
                     label = f"{child.name}/{relative}/{name}"
                     actions.append({"kind": "copy", "src": template_path, "dst": dest, "label": label})
