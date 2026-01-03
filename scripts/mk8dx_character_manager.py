@@ -7,6 +7,7 @@ import struct
 import sys
 import io
 import time
+import subprocess
 from contextlib import redirect_stdout, redirect_stderr, contextmanager
 from io import BytesIO
 from pathlib import Path
@@ -475,14 +476,14 @@ def _inject_bfbon_into_szs(szs_path: Path, bones_dir: Path):
     finally:
         Console.SetOut(old_out)
         Console.SetError(old_err)
-    target_name = szs_path.stem
+    unwanted_name = "Pupil"
     target_model = None
     for model in res.Models:
-        if str(model.Name) == target_name:
+        if str(model.Name) != unwanted_name:
             target_model = model
             break
     if target_model is None:
-        raise RuntimeError(f"Model named '{target_name}' not found in {szs_path.name}")
+        raise RuntimeError(f"Model not found in {szs_path.name}")
 
     skeleton = target_model.Skeleton
     existing = {str(b.Name) for b in skeleton.Bones}
@@ -1880,6 +1881,13 @@ class MK8DXEditor(tk.Tk):
             else:
                 missing.append(shared)
 
+        suit_variants = {
+            "Peach.szs": "PeachSuit.szs",
+            "Daisy.szs": "DaisySuit.szs",
+            "MetalPeach.szs": "MetalPeachSuit.szs",
+            "Rosetta.szs": "RosettaSuit.szs",
+        }
+
         for fixed_name, folder_name in assignments:
             base = os.path.join(self.mod_root, "characters", folder_name)
             files = self.mapping.get(fixed_name, self._default_files_for(fixed_name))
@@ -1905,6 +1913,14 @@ class MK8DXEditor(tk.Tk):
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 shutil.copy2(src, dst)
                 copied += 1
+                rel_parts = Path(rel).parts
+                if rel_parts and rel_parts[0].lower() == "driver" and dst.lower().endswith(".szs"):
+                    base_name = os.path.basename(dst)
+                    suit_name = suit_variants.get(base_name)
+                    if suit_name:
+                        suit_dst = os.path.join(os.path.dirname(dst), suit_name)
+                        shutil.copy2(dst, suit_dst)
+                        copied += 1
 
         msg = f"Copied {copied} file(s) to romfs."
         if missing:
@@ -1914,6 +1930,25 @@ class MK8DXEditor(tk.Tk):
             messagebox.showwarning("Missing files", f"{len(missing)} missing file(s): {short}")
             msg += f" Missing: {len(missing)}."
         else:
+            # Auto-refresh __Combined.bntx textures using newly copied PNGs/sarc
+            auto_png_dir = Path(dst_root, "UI", "cmn")
+            replace_script = SCRIPT_DIR / "replace_bftex_texture.py"
+            shared_present = all((auto_png_dir / shared).exists() for shared in ("common.sarc", "menu.sarc"))
+            png_present = any(auto_png_dir.glob("*.png"))
+            if replace_script.exists() and shared_present and png_present:
+                try:
+                    proc = subprocess.run(
+                        [sys.executable, str(replace_script), "--auto", "--png-dir", str(auto_png_dir)],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    if proc.stdout.strip():
+                        print(proc.stdout.strip())
+                    if proc.stderr.strip():
+                        print(proc.stderr.strip())
+                except Exception as exc:
+                    print(f"[WARN] Failed to refresh BNTX textures: {exc}")
             messagebox.showinfo("Copy complete", msg)
         self.status.set(msg)
 
