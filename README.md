@@ -39,9 +39,9 @@ After copying files, place `<mod-name>/romfs/...` in your MK8DX mod folder.
 In Switch-Toolbox, open `romfs/UI/cmn/common.sarc` and `romfs/UI/cmn/menu.sarc`, find `cm_L_CharaIcon_00.szs` and `nm_L_CharaIcon_00.szs`, go to `[c-n]m_L_CharaIcon_00.szs/timg/__Combined.bntx`, right-click `__Combined.bntx`, choose "Replace textures (from Folder)", and select `romfs/UI/cmn/`.
 
 ### Extra scripts
-- `scripts/bars_transfer.py`: GUI helper to copy BFWAVs from one `.bars` to several others (uses `config/audio_assets_map.json` and `config/bfwav_groups.json`). Run `python scripts/bars_transfer.py`.
 - `scripts/generate_audio_assets_map.py`: rebuilds `config/audio_assets_map.json` by scanning the `Audio/` directory. Run `python scripts/generate_audio_assets_map.py`.
-- `scripts/character_placement.py`: legacy, simplified character grid editor (without the newer audio/duplication helpers).
+- `scripts/replace_bfwav_with_groups.py`: CLI to clone BFWAVs between `.bars` using `config/bfwav_groups.json` (needs pythonnet + DLLs in `scripts/lib`). Run `python scripts/replace_bfwav_with_groups.py --src ... --dst ... --output ...`.
+- `scripts/add_bfbon_bones.py`: helper to inject `.bfbon` bones from `MK8D_Bones/` into a `.szs` model (needs oead + BFRES DLLs in `scripts/lib`).
 
 ### Repository layout
 - `scripts/`: main UI (`mk8dx_character_manager.py`) and audio helpers.

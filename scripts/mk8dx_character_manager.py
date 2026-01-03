@@ -6,7 +6,8 @@ import shutil
 import struct
 import sys
 import io
-from contextlib import redirect_stdout, redirect_stderr
+import time
+from contextlib import redirect_stdout, redirect_stderr, contextmanager
 from io import BytesIO
 from pathlib import Path
 import tkinter as tk
@@ -29,6 +30,7 @@ GRID_COUNT = GRID_COLS * GRID_ROWS
 
 CONFIG_DIRNAME = "config"
 MISSING_DIALOG_THRESHOLD = 1500  # avoid spawning thousands of checkboxes that freeze Tk
+PROGRESS_LOG_EVERY = 100  # show progress every N processed actions
 
 # Group cell settings: list of parents (index in grid) and slot counts
 GROUP_DEFS = [
@@ -120,8 +122,42 @@ BFRES_DLLS = (
     "Syroot.Maths.dll",
     "Syroot.NintenTools.NSW.Bfres.dll",
 )
+BARS_DLL = "BarsLibrary.dll"
 
 _BFRES_BINDINGS = None
+_BARS_CLASS = None
+
+
+@contextmanager
+def _silence_dotnet_console():
+    """Silence .NET Console writes (avoids noisy BarsLibrary output)."""
+    try:
+        import clr  # type: ignore
+        clr.AddReference("System")
+        from System import Console  # type: ignore
+        from System.IO import StreamWriter, Stream  # type: ignore
+    except Exception:
+        # If pythonnet/System unavailable, just run without silencing.
+        yield
+        return
+
+    old_out, old_err = Console.Out, Console.Error
+    null_writer = StreamWriter(Stream.Null)
+    null_writer.AutoFlush = True
+    try:
+        Console.SetOut(null_writer)
+        Console.SetError(null_writer)
+        yield
+    finally:
+        try:
+            null_writer.Flush()
+        except Exception:
+            pass
+        try:
+            Console.SetOut(old_out)
+            Console.SetError(old_err)
+        except Exception:
+            pass
 
 def _config_path(base: Path, filename: str) -> Path:
     """Return path to a config file under config/, falling back to root."""
@@ -160,6 +196,72 @@ def _load_bfwav_groups_at(base: Path):
         for name in members:
             name_to_group[name] = members
     return name_to_group
+
+
+def _load_bars_bindings(lib_dir: Path):
+    """Load BarsLibrary.dll + deps and return BARS class."""
+    global _BARS_CLASS
+    if _BARS_CLASS:
+        return _BARS_CLASS
+    try:
+        import clr  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError("pythonnet is required: pip install pythonnet") from exc
+
+    sys.path.insert(0, str(lib_dir))
+    missing = [name for name in (*BFRES_DLLS, BARS_DLL) if not (lib_dir / name).exists()]
+    if missing:
+        raise RuntimeError(f"Missing DLLs in {lib_dir}: {', '.join(missing)}")
+
+    for name in BFRES_DLLS:
+        clr.AddReference(str(lib_dir / name))
+    clr.AddReference(str(lib_dir / BARS_DLL))
+
+    from BarsLib import BARS  # type: ignore
+
+    _BARS_CLASS = BARS
+    return _BARS_CLASS
+
+
+def _replace_bars_with_groups(src_path: Path, dst_path: Path, name_to_group: dict[str, set[str]]):
+    """Replace audio in dst using src, matching by name or group."""
+    sink = io.StringIO()
+    with _silence_dotnet_console(), redirect_stdout(sink), redirect_stderr(sink):
+        lib_dir = SCRIPT_DIR / "lib"
+        BARS = _load_bars_bindings(lib_dir)
+
+        src_bars = BARS(str(src_path))
+        dst_bars = BARS(str(dst_path))
+
+        src_by_name = {str(entry.MetaData.Name): entry for entry in src_bars.AudioEntries}
+
+        replaced = 0
+        ignored = []
+
+        for entry in dst_bars.AudioEntries:
+            dest_name = str(entry.MetaData.Name)
+            src_entry = src_by_name.get(dest_name)
+            if not src_entry:
+                group = name_to_group.get(dest_name)
+                if group:
+                    for candidate in group:
+                        src_entry = src_by_name.get(candidate)
+                        if src_entry:
+                            break
+            if not src_entry:
+                ignored.append(dest_name)
+                continue
+
+            entry.MetaData = src_entry.MetaData
+            try:
+                entry.MetaData.Name = dest_name
+            except Exception:
+                pass
+            entry.AudioFile = src_entry.AudioFile
+            replaced += 1
+
+        dst_bars.Save(str(dst_path))
+    return replaced, ignored
 
 
 def _find_map_entry(audio_map, bars_path: str):
@@ -1410,7 +1512,7 @@ class MK8DXEditor(tk.Tk):
 
             msg = (
                 f"{total} missing file(s) detected. The list is too large for a detailed selection.\n\n"
-                "Copy/patch all files? (can take up to 5 hours for all .bars files, otherwise a few seconds)"
+                "Copy/patch all files? (freshly downloaded folder: ~2 minutes)"
             )
             if log_path:
                 msg += f"\n\nList saved in:\n{log_path}"
@@ -1630,29 +1732,45 @@ class MK8DXEditor(tk.Tk):
             lines.append("Copy canceled (no selection).")
             return "\n".join(lines).rstrip()
 
+        overall_start = time.perf_counter()
+
+        # Summary of missing counts per folder (label without file name)
+        counts_per_folder: dict[str, int] = {}
+        for action in selected_actions:
+            label = action.get("label", "")
+            folder_label = "/".join(label.split("/")[:-1]) if "/" in label else label
+            if folder_label:
+                counts_per_folder[folder_label] = counts_per_folder.get(folder_label, 0) + 1
+        for folder_label, cnt in sorted(counts_per_folder.items()):
+            print(f"{folder_label}: {cnt} missing file(s)")
+
         # Executer les copies selectionnees
         copied_count = 0
         patched_count = 0
-        audio_map = None
         bfwav_groups = None
         bars_cache: dict[str, Bars] = {}
         injected_sources: set[Path] = set()
+        actions_start = overall_start
+        total_actions = len(selected_actions)
         for i, action in enumerate(selected_actions, 1):
             kind = action.get("kind", "copy")
             src = action["src"]
             dst = action["dst"]
+            action_start = time.perf_counter()
+            should_log = i == 1 or i == total_actions or (i % PROGRESS_LOG_EVERY == 0)
+            if should_log:
+                print(f"\n--- Processing #{i}: {dst} ---")
             if kind == "bars":
-                if audio_map is None:
-                    audio_map = _load_audio_map_at(Path(self.mod_root))
-                    if audio_map is None:
-                        lines.append("[Audio] audio_assets_map.json not found, patch canceled.")
-                        continue
                 if bfwav_groups is None:
                     bfwav_groups = _load_bfwav_groups_at(Path(self.mod_root))
-                print(f"\n--- Processing #{patched_count + 1}: {dst} ---")
-                res = self._execute_bars_action(action, audio_map, bfwav_groups, bars_cache)
-                if res:
+                res = self._execute_bars_action(action, None, bfwav_groups, bars_cache)
+                if res is not None:
+                    replaced, _ignored = res
                     patched_count += 1
+                    if should_log:
+                        elapsed = time.perf_counter() - action_start
+                        total_elapsed = time.perf_counter() - overall_start
+                        print(f"Replacements done: {replaced} (action {elapsed:.3f}s, total {total_elapsed:.3f}s)")
                 continue
             if dst.suffix.lower() == ".szs" and src not in injected_sources:
                 try:
@@ -1664,6 +1782,10 @@ class MK8DXEditor(tk.Tk):
             os.makedirs(dst.parent, exist_ok=True)
             shutil.copy2(src, dst)
             copied_count += 1
+            if should_log:
+                elapsed = time.perf_counter() - action_start
+                total_elapsed = time.perf_counter() - overall_start
+                print(f"Copied: {dst.name} (action {elapsed:.3f}s, total {total_elapsed:.3f}s)")
 
         parts = []
         if copied_count:
@@ -1674,16 +1796,19 @@ class MK8DXEditor(tk.Tk):
             lines.append("No action executed.")
         else:
             lines.append("Copy finished: " + " | ".join(parts) + ".")
+        actions_elapsed = time.perf_counter() - actions_start
+        overall_elapsed = time.perf_counter() - overall_start
+        print(f"Selected actions completed in {actions_elapsed:.3f}s (overall {overall_elapsed:.3f}s since start).")
         return "\n".join(lines).rstrip()
 
-    def _execute_bars_action(self, action: dict, audio_map, bfwav_groups, bars_cache) -> bool:
+    def _execute_bars_action(self, action: dict, audio_map, bfwav_groups, bars_cache):
         src = Path(action["src"])
         dst = Path(action["dst"])
         base_audio_dir = Path(self.mod_root) / BASE_AUDIO_DIRNAME
 
         if not src.is_file():
             print(f"[ERROR] Source .bars not found: {src}")
-            return False
+            return None
 
         if not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -1695,20 +1820,17 @@ class MK8DXEditor(tk.Tk):
             for candidate in candidates:
                 if candidate.is_file():
                     shutil.copy2(candidate, dst)
-                    print(f"[INFO] Missing destination file, copied from {candidate}")
                     found = True
                     break
             if not found:
                 print(f"[ERROR] Source file not found for {dst.name} in Audio/Driver*.")
-                return False
-
-        res = _process_bars_pair(str(src), str(dst), audio_map, bfwav_groups, bars_cache)
-        if res is None:
-            return False
-        replaced, ignored = res
-        if replaced == 0:
-            print(f"[WARN] No replacement performed for {dst.name}.")
-        return True
+                return None
+        try:
+            replaced, ignored = _replace_bars_with_groups(src, dst, bfwav_groups or {})
+        except Exception as e:
+            print(f"[ERROR] Failed to patch {dst.name}: {e}")
+            return None
+        return replaced, ignored
 
     def copy_files(self):
         if not self._ensure_mod_root():
@@ -1779,12 +1901,6 @@ class MK8DXEditor(tk.Tk):
                 if not os.path.isfile(src):
                     missing.append(f"{folder_name}/{rel}")
                     continue
-                if rel == driver_path:
-                    try:
-                        _inject_bfbon_into_szs(Path(src), Path(self.mod_root) / "MK8D_Bones")
-                    except Exception as e:
-                        messagebox.showerror("BFRES bones", f"Failed to inject bones into {rel}: {e}")
-                        return
                 dst = os.path.join(dst_root, rel)
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 shutil.copy2(src, dst)
