@@ -604,6 +604,7 @@ class MK8DXEditor(tk.Tk):
         ttk.Button(toolbar, text="Import preset", command=self.import_preset).pack(side="left", padx=18)
         ttk.Button(toolbar, text="Export preset", command=self.export_preset).pack(side="left")
         ttk.Button(toolbar, text="Copy files", command=self.copy_files).pack(side="left", padx=12)
+        ttk.Button(toolbar, text="copie pour CTGPDX", command=self.copy_files_to_CTGPdx).pack(side="left")
 
         self.status = tk.StringVar(value="Select mods_characters_mk8dx to load thumbnails.")
         ttk.Label(toolbar, textvariable=self.status).pack(side="left", padx=18)
@@ -1833,10 +1834,7 @@ class MK8DXEditor(tk.Tk):
             return None
         return replaced, ignored
 
-    def copy_files(self):
-        if not self._ensure_mod_root():
-            return
-
+    def _collect_copy_assignments(self):
         def slot_fixed_name(parent_idx, gi):
             names = GROUP_SLOT_NAMES.get(parent_idx, [])
             return names[gi] if gi < len(names) else None
@@ -1855,10 +1853,8 @@ class MK8DXEditor(tk.Tk):
             ch = self.grid[idx]
             if fixed and ch:
                 assignments.append((fixed, ch["name"]))
+
         # groups
-        def slot_fixed_name(parent_idx, gi):
-            names = GROUP_SLOT_NAMES.get(parent_idx, [])
-            return names[gi] if gi < len(names) else None
         for parent_idx, group in self.groups.items():
             for gi in range(group["size"]):
                 fixed = slot_fixed_name(parent_idx, gi)
@@ -1866,20 +1862,50 @@ class MK8DXEditor(tk.Tk):
                 if fixed and ch:
                     assignments.append((fixed, ch["name"]))
 
-        dst_root = os.path.join(self.mod_root, "romfs")
+        return assignments
+
+    def _refresh_bntx_textures(self, dst_root: Path):
+        auto_png_dir = Path(dst_root, "UI", "cmn")
+        replace_script = SCRIPT_DIR / "replace_bftex_texture.py"
+        shared_present = all((auto_png_dir / shared).exists() for shared in ("common.sarc", "menu.sarc"))
+        png_present = any(auto_png_dir.glob("*.png"))
+        if replace_script.exists() and shared_present and png_present:
+            try:
+                proc = subprocess.run(
+                    [sys.executable, str(replace_script), "--auto", "--png-dir", str(auto_png_dir)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                if proc.stdout.strip():
+                    print(proc.stdout.strip())
+                if proc.stderr.strip():
+                    print(proc.stderr.strip())
+            except Exception as exc:
+                print(f"[WARN] Failed to refresh BNTX textures: {exc}")
+
+    def _copy_files_to_destination(self, dst_root: Path, *, target_label: str, skip_existing_shared: bool = False):
+        assignments = self._collect_copy_assignments()
+
+        dst_root = Path(dst_root)
+        dst_root.mkdir(parents=True, exist_ok=True)
         copied = 0
         missing = []
 
         # copy shared UI sarc
-        ui_common_dst = os.path.join(dst_root, "UI", "cmn")
-        os.makedirs(ui_common_dst, exist_ok=True)
+        ui_common_dst = dst_root / "UI" / "cmn"
+        ui_common_dst.mkdir(parents=True, exist_ok=True)
         for shared in ("common.sarc", "menu.sarc"):
-            src_shared = os.path.join(self.mod_root, shared)
-            if os.path.isfile(src_shared):
-                shutil.copy2(src_shared, os.path.join(ui_common_dst, shared))
+            src_shared = Path(self.mod_root) / shared
+            dst_shared = ui_common_dst / shared
+            if skip_existing_shared and dst_shared.exists():
+                continue
+            if src_shared.is_file():
+                shutil.copy2(src_shared, dst_shared)
                 copied += 1
             else:
-                missing.append(shared)
+                if not dst_shared.exists():
+                    missing.append(shared)
 
         suit_variants = {
             "Peach.szs": "PeachSuit.szs",
@@ -1889,7 +1915,7 @@ class MK8DXEditor(tk.Tk):
         }
 
         for fixed_name, folder_name in assignments:
-            base = os.path.join(self.mod_root, "characters", folder_name)
+            base = Path(self.mod_root) / "characters" / folder_name
             files = self.mapping.get(fixed_name, self._default_files_for(fixed_name))
             driver_path = files.get("Driver") or files.get("driver")
             menu_path = files.get("Audio/DriverMenu") or files.get("menu")
@@ -1905,24 +1931,25 @@ class MK8DXEditor(tk.Tk):
             for rel in rel_paths:
                 if not rel:
                     continue
-                src = os.path.join(base, rel)
-                if not os.path.isfile(src):
+                rel_path = Path(rel)
+                src = base / rel_path
+                if not src.is_file():
                     missing.append(f"{folder_name}/{rel}")
                     continue
-                dst = os.path.join(dst_root, rel)
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                dst = dst_root / rel_path
+                dst.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src, dst)
                 copied += 1
-                rel_parts = Path(rel).parts
-                if rel_parts and rel_parts[0].lower() == "driver" and dst.lower().endswith(".szs"):
-                    base_name = os.path.basename(dst)
+                rel_parts = rel_path.parts
+                if rel_parts and rel_parts[0].lower() == "driver" and dst.suffix.lower() == ".szs":
+                    base_name = dst.name
                     suit_name = suit_variants.get(base_name)
                     if suit_name:
-                        suit_dst = os.path.join(os.path.dirname(dst), suit_name)
+                        suit_dst = dst.with_name(suit_name)
                         shutil.copy2(dst, suit_dst)
                         copied += 1
 
-        msg = f"Copied {copied} file(s) to romfs."
+        msg = f"Copied {copied} file(s) to {target_label}."
         if missing:
             short = ", ".join(missing[:6])
             if len(missing) > 6:
@@ -1931,26 +1958,23 @@ class MK8DXEditor(tk.Tk):
             msg += f" Missing: {len(missing)}."
         else:
             # Auto-refresh __Combined.bntx textures using newly copied PNGs/sarc
-            auto_png_dir = Path(dst_root, "UI", "cmn")
-            replace_script = SCRIPT_DIR / "replace_bftex_texture.py"
-            shared_present = all((auto_png_dir / shared).exists() for shared in ("common.sarc", "menu.sarc"))
-            png_present = any(auto_png_dir.glob("*.png"))
-            if replace_script.exists() and shared_present and png_present:
-                try:
-                    proc = subprocess.run(
-                        [sys.executable, str(replace_script), "--auto", "--png-dir", str(auto_png_dir)],
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-                    if proc.stdout.strip():
-                        print(proc.stdout.strip())
-                    if proc.stderr.strip():
-                        print(proc.stderr.strip())
-                except Exception as exc:
-                    print(f"[WARN] Failed to refresh BNTX textures: {exc}")
+            self._refresh_bntx_textures(dst_root)
             messagebox.showinfo("Copy complete", msg)
         self.status.set(msg)
+
+    def copy_files(self):
+        if not self._ensure_mod_root():
+            return
+        dst_root = Path(self.mod_root) / "romfs"
+        self._copy_files_to_destination(dst_root, target_label="romfs", skip_existing_shared=False)
+
+    def copy_files_to_CTGPdx(self):
+        if not self._ensure_mod_root():
+            return
+        dst_root = filedialog.askdirectory(title="Select CTGPDX folder")
+        if not dst_root:
+            return
+        self._copy_files_to_destination(Path(dst_root), target_label="CTGPDX", skip_existing_shared=True)
 
 
     # ---------------- Presets ----------------

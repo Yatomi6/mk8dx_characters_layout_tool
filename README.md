@@ -17,8 +17,9 @@ What it does:
 - Loads all skins from `characters/` using `config/mapping.json` and shows their icons.
 - Checks every skin folder for expected files (Driver, Audio/Driver, Audio/DriverMenu, UI/cmn). Missing files are listed; you can choose to get them. A large missing list is written to `missing_files.txt`.
 - Drag & drop characters from the left list to the 8x6 grid; grouped slots handle Gold/Metal Mario, Animal Boy/Girl, and Link/Link BotW. Cells (0,5) and (7,5) are blocked.
-- Buttons: clear grid, randomize grid, import/export presets (`.json`), and **Copy files**.
+- Buttons: clear grid, randomize grid, import/export presets (`.json`), **Copy files**, and **copie pour CTGPDX**.
 - **Copy files** copies all placed assets into `romfs/` (including updated `common.sarc` and `menu.sarc` into `romfs/UI/cmn/`).
+- **copie pour CTGPDX** lets you pick the CTGPDX romfs folder and copies the files in it, merging into existing `Audio/`, `Driver/`, and `UI/cmn/` without deleting them; if `UI/cmn/common.sarc` or `menu.sarc` already exist, they are kept and only patched.
 
 ### Presets
 - Export preset: fills empty cells with unused characters, then saves a `.json` layout.
@@ -41,10 +42,10 @@ After copying files, place `<mod-name>/romfs/...` in your MK8DX mod folder.
 - `scripts/replace_bftex_texture.py`: change icons' `.bftex` textures of `common.sarc` and `menu.sarc` with textures of the `.pngs` of the chosen folder.
 
 ### Repository layout
-- `scripts/`: main UI (`mk8dx_character_manager.py`) and audio helpers.
+- `scripts/`: main UI (`mk8dx_character_manager.py`) and audio helpers (DO NOT TOUCH IF NOT NEEDED).
 - `config/`: `mapping.json` (slot -> files), `audio_assets_map.json` (bars prefixes/BFWAV lists), `bfwav_groups.json` (equivalent sounds for bfwav replacements), `character_files_reference.json` (expected file names). DO NOT TOUCH THIS FOLDER IF NOT NEEDED.
 - `characters/`: base skins and their assets.
 - `Audio/`: source `.bars` used for duplication/patching (DO NOT TOUCH).
 - `romfs/`: output folder produced by **Copy files**.
 - `MK8D_Bones/`: reference `*.bfbon` bone files (DO NOT TOUCH).
-- `common.sarc`, `menu.sarc`: shared UI archives copied into `romfs/UI/cmn/`.
+- `common.sarc`, `menu.sarc`: shared UI archives copied into `romfs/UI/cmn/` (DO NOT TOUCH).
